@@ -9,7 +9,7 @@ class Event:
     def __init__(self):
         pass
     
-class RiskEvent(Event):
+class Cancel_Order_Event(Event):
     def __init__(self,eventtype,orderid):
         self.type = eventtype
         self.orderid = orderid

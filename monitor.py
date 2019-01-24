@@ -15,12 +15,11 @@ import threading
 import time
 import zmq
 from queue import Queue
-from controller import Risk_controller
-from controller import Signal_controller
+from controller import Cancel_Order_controller,Signal_controller,Risk_controller
 from Logger import Log
-from param import Risk_Port ,Signal_Port
+from param import Cancel_Order_Port ,Signal_Port,Risk_controller_Port
 import json
-from param import Risk_sleep_time,Signal_sleep_time
+from param import Cancel_Order_sleep_time,Signal_sleep_time,Risk_controller_sleep_time
 # Prepare our context and sockets
 
 
@@ -47,20 +46,21 @@ def Mymonitor(controller_func,port,sleeptime):
             else:
                 event = events.get(False)
             dic = event.dic()
-            mylog.write(json.dumps(dic))
+            mylog.write(str(dic))
             socket.send_json(dic)    
         time.sleep(sleeptime)
         
 if __name__ == '__main__':
-    
-    #启动风控进程
-    thread1 = threading.Thread(target=Mymonitor, args=(Risk_controller,Risk_Port,Risk_sleep_time))
-    
+    threads = []
+    #启动订单监控模块
+    threads.append(threading.Thread(target=Mymonitor, args=(Cancel_Order_controller,Cancel_Order_Port,Cancel_Order_sleep_time)))    
     #启动信号进程
-    thread2 = threading.Thread(target=Mymonitor, args=(Signal_controller,Signal_Port,Signal_sleep_time))
+    threads.append(threading.Thread(target=Mymonitor, args=(Signal_controller,Signal_Port,Signal_sleep_time)))    
+    #启动分控监控进程
+    threads.append(threading.Thread(target=Mymonitor, args=(Risk_controller, Risk_controller_Port , Risk_controller_sleep_time)))
     
     
-    thread1.start()
-    thread2.start()
-    thread1.join()
-    thread2.join()
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()

@@ -10,9 +10,9 @@ import zmq
 import time
 from Logger import Log
 import sys
-from param import Risk_Port ,Signal_Port
+from param import Cancel_Order_Port ,Signal_Port,Risk_controller_Port
 import threading
-from okex_api import Take_order_API
+from api.okex_api import Take_order_API
 
 
 # 执行模块日志
@@ -43,7 +43,8 @@ def main():
     # Initialize poll set
     poller = zmq.Poller()
     sockets = {'signal_socket':{"socket":context.socket(zmq.SUB),"port":Signal_Port},
-           'risk_socket'  :{"socket":context.socket(zmq.SUB),"port":Risk_Port}}
+           'cancel_order_socket'  :{"socket":context.socket(zmq.SUB),"port":Cancel_Order_Port},
+           'risk_socket':{"socket":context.socket(zmq.SUB),"port":Risk_controller_Port}}
     
     
     # 接收交易信号 

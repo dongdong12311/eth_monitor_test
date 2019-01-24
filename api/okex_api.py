@@ -14,7 +14,10 @@ from param import Instrument_id,BEISHU
 from Logger import Log
 import requests
 from order import Order
-
+from loser import Loser
+import datetime
+from  dateutil.parser import parse
+import dbm
 class Market_info_API:
     def __init__(self):
         self.instrument_id = Instrument_id
@@ -23,7 +26,18 @@ class Market_info_API:
         passphrase = 'Market_info_API'
         self.futureAPI = future.FutureAPI(api_key, seceret_key,passphrase, True)  
         self.log = Log("Market_info_API.txt")
-        
+        db = dbm.open(self.instrument_id, 'c')
+        if b'latest' not in db.keys():
+            db['latest'] = '2019-01-22T19:00:21.000Z'
+        db.close()
+    def GetLoser(self):
+        "获取最新的爆仓订单   "
+        try:
+            get = requests.get('https://www.okex.me/api/futures/v3/instruments/'+self.instrument_id+'/liquidation?status=1&from=1&limit=50')
+        except:
+            self.log.write("获取爆仓单失败")
+            return []
+        return  get.json()
     def GetDepth(self,depth = 2):
         "获取市场深度数据 返回字典 list"
         result={}
@@ -34,14 +48,7 @@ class Market_info_API:
             self.log.write("无法获取市场数据")
         return result   
     
-    def GetLoser(self):
-        "获取最新的爆仓订单   "
-        try:
-            get = requests.get('https://www.okex.me/api/futures/v3/instruments/'+self.instrument_id+'/liquidation?status=1&from=1&limit=50')
-        except:
-            self.log.write("获取爆仓单失败")
-            return []
-        return  get.json()
+
     
     def best_ask(self,defaultprice):
         try:
@@ -71,6 +78,35 @@ class Market_info_API:
         except:
             self.log.write("获取未成交订单失败")
         return results
+    def get_local_loser_time(self):
+        db = dbm.open(self.instrument_id, 'c')
+        losertime =  db['latest']
+        db.close()
+        return losertime  #返回str
+    def update_loser_time(self,time):
+        db = dbm.open(self.instrument_id, 'c')
+        db['latest'] = time
+        db.close()        
+    def NewLosers(self):
+        losers = []
+        lastloser_time = parse(self.get_local_loser_time())
+        "获取最新的爆仓订单"
+        potential_losers = self.GetLoser()
+        s=''
+        for i in range(len(potential_losers)-1,-1,-1):            
+            losetime =  parse(potential_losers[i]['created_at'])
+            if  losetime > lastloser_time:
+                "如果爆仓订单的时间比现在的新"
+                price = float(potential_losers[i]['price'])
+                losers.append(Loser(losetime,price,potential_losers[i]['size'],potential_losers[i]['type']))
+                
+                s+="新增爆仓订单:\n爆仓价格：%.2f\n爆仓方向：%s\n爆仓时间:%s\n"%(price,potential_losers[i]['type'],potential_losers[i]['created_at'])
+                self.log.write(s)
+        #更新最新的loser time
+        if len(potential_losers)>0 :
+            self.update_loser_time(potential_losers[0]['created_at'])
+        return losers
+
     
 class Position_info_API:
     def __init__(self):
@@ -80,7 +116,7 @@ class Position_info_API:
         passphrase = 'Position_info_API'  
         self.futureAPI = future.FutureAPI(api_key, seceret_key,passphrase, True)  
         self.log = Log("Position_info_API.txt")    
-    def get_position(self):
+    def get_positions(self):
         #获取持仓数据
         try:
             results = self.futureAPI.get_specific_position(self.instrument_id) 
@@ -88,7 +124,28 @@ class Position_info_API:
             self.log.write("获取持仓数据失败")
             return None 
         return results
+    def GetDepth(self,depth = 2):
+        "获取市场深度数据 返回字典 list"
+        result={}
+        result['order_info'] = []
+        try:
+            result = self.futureAPI.get_depth(self.instrument_id,depth)
+        except:
+            self.log.write("无法获取市场数据")
+        return result   
+    
 
+    
+    def best_ask(self,defaultprice):
+        try:
+            return self.GetDepth()['asks'][0][0]
+        except:
+            return defaultprice
+    def best_bid(self,defaultprice):
+        try:
+            return self.GetDepth()['bids'][0][0]
+        except:
+            return defaultprice
 
 class Take_order_API:
     def __init__(self):
