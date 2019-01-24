@@ -10,17 +10,21 @@ class Event:
         pass
     
 class RiskEvent(Event):
-    def __init__(self,eventtype,tradeside,price,amount):
+    def __init__(self,eventtype,orderid):
         self.type = eventtype
-        self.price = price
-        self.amount = amount
-        self.tradeside = tradeside
-        
+        self.orderid = orderid
+    def dic(self):
+        return {"type":self.type,"orderid":self.orderid}
         
         
 class SignalEvent(Event):
-    def __init__(self,eventtype,tradeside,price,amount):
+    def __init__(self,eventtype,price,size,otype):
+        """eventtype:"type",price":str,"size":str,"otype":str}:"""
         self.type = eventtype
         self.price = price
-        self.amount = amount
-        self.tradeside = tradeside
+        self.size = size
+        self.otype = otype
+    def dic(self):
+        return {"type":self.type,"price":self.price,"size":self.size,"otype":self.otype}
+    
+        

@@ -9,35 +9,49 @@ Created on Sun Jan 20 13:13:46 2019
 import zmq
 import time
 from Logger import Log
-# Prepare our context and sockets
 import sys
 from param import Risk_Port ,Signal_Port
+import threading
+from okex_api import Take_order_API
+
+
 # 执行模块日志
 excution_log = Log("excution_log.txt")
-
-#  Socket to talk to server
-context = zmq.Context()
-
-sockets = {'signal_socket':context.socket(zmq.SUB),
-       'risk_socket'  :context.socket(zmq.SUB)}
-# 接收交易信号 
-sockets['signal_socket'].connect("tcp://localhost:"+Signal_Port)
-# 接收策略信号
-sockets['risk_socket'].connect("tcp://localhost:"+Risk_Port)
-# Initialize poll set
-poller = zmq.Poller()
-for sockets in sockets.values():
-    # 默认接收所有的信号
-    sockets.setsockopt_string(zmq.SUBSCRIBE,"")
-    poller.register(sockets, zmq.POLLIN)
-
-import threading
-
-
+take_order_api = Take_order_API()
 def process(message):
-    print(message)
+    '''
+    message = {"type":"CANCEL","price":str,"size":str,"otype":str,orderid:str}:
+    TAKE_ORDER:交易
+    "CANCEL":撤单    
+    '''
+    if message['type'] == 'CANCEL':
+        take_order_api.cancel_order(message['orderid'])
+    elif message['type'] == 'TAKE_ORDER': 
+        take_order_api.takeOrder(message['price'],message['size'],message['otype'])
+    
     excution_log.write(str(message))
-if __name__ == '__main__':
+
+
+
+
+def main():
+    
+    
+    
+    #  Socket to talk to server
+    context = zmq.Context()
+    # Initialize poll set
+    poller = zmq.Poller()
+    sockets = {'signal_socket':{"socket":context.socket(zmq.SUB),"port":Signal_Port},
+           'risk_socket'  :{"socket":context.socket(zmq.SUB),"port":Risk_Port}}
+    
+    
+    # 接收交易信号 
+    for socket in sockets.values():
+        socket["socket"].connect("tcp://localhost:"+socket["port"])
+        # 默认接收所有的信号
+        socket["socket"].setsockopt_string(zmq.SUBSCRIBE,"")
+        poller.register(socket["socket"], zmq.POLLIN)
     while 1:    
         try:
             socks = dict(poller.poll())
@@ -53,4 +67,4 @@ if __name__ == '__main__':
             if t.is_alive():
                 t.join()            
 
-
+main()

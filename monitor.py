@@ -20,6 +20,7 @@ from controller import Signal_controller
 from Logger import Log
 from param import Risk_Port ,Signal_Port
 import json
+from param import Risk_sleep_time,Signal_sleep_time
 # Prepare our context and sockets
 
 
@@ -45,9 +46,7 @@ def Mymonitor(controller_func,port,sleeptime):
                 break
             else:
                 event = events.get(False)
-            dic = {'type':event.type,'tradeside':event.tradeside,
-                   'price':event.price,
-                   'amount':event.amount}
+            dic = event.dic()
             mylog.write(json.dumps(dic))
             socket.send_json(dic)    
         time.sleep(sleeptime)
@@ -55,10 +54,10 @@ def Mymonitor(controller_func,port,sleeptime):
 if __name__ == '__main__':
     
     #启动风控进程
-    thread1 = threading.Thread(target=Mymonitor, args=(Risk_controller,Risk_Port,1))
+    thread1 = threading.Thread(target=Mymonitor, args=(Risk_controller,Risk_Port,Risk_sleep_time))
     
     #启动信号进程
-    thread2 = threading.Thread(target=Mymonitor, args=(Signal_controller,Signal_Port,0.1))
+    thread2 = threading.Thread(target=Mymonitor, args=(Signal_controller,Signal_Port,Signal_sleep_time))
     
     
     thread1.start()

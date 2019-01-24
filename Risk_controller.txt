@@ -1,6 +1,0 @@
-2019-01-22 22:38:05.796733	{"type": "CLOSE", "tradeside": 1, "price": 1, "amount": 1}
-2019-01-22 22:38:06.904374	{"type": "CLOSE", "tradeside": 1, "price": 1, "amount": 1}
-2019-01-22 22:38:07.944546	{"type": "CLOSE", "tradeside": 1, "price": 1, "amount": 1}
-2019-01-22 22:38:08.961793	{"type": "CLOSE", "tradeside": 1, "price": 1, "amount": 1}
-2019-01-22 22:38:09.985775	{"type": "CLOSE", "tradeside": 1, "price": 1, "amount": 1}
-2019-01-22 22:38:11.018564	{"type": "CLOSE", "tradeside": 1, "price": 1, "amount": 1}
