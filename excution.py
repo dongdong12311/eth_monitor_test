@@ -29,7 +29,7 @@ def process(messages):
             take_order_api.cancel_order(message.orderid)
         elif message.type == 'TAKE_ORDER': 
             take_order_api.takeOrder(message.price,message.size,message.otype)
-    excution_log.write(str(messages))
+        excution_log.write(str(message))
 
 
 

@@ -35,7 +35,6 @@ class Cancel_Order_controller(controller):
         orders  = market_infor_api.get_market_orders()
         orderlist = []
         for order in orders:
-            print(order.order_time_relative())
             if order.order_time_relative() > 2:
                 "订单时间超过两秒钟"
                 orderlist.append(Cancel_Order_Event('CANCEL',order.orderid))
@@ -56,7 +55,6 @@ class Risk_controller(controller):
         signals = []
         positions = self.account.get_positions()
         for position in positions:
-            print(position.ratio)
             if abs(position.ratio) > 10 and position.size > 0 :
                 "如果收益超过+-10%"
                 #	1:开多2:开空3:平多4:平空 
@@ -86,6 +84,7 @@ class Signal_controller(controller):
         self.filename =  self.__class__.__name__ + '.txt'
         self.mylog = Log(self.filename)
     def monitor(self):
+        
         size = '10'
         losers = market_infor_api.NewLosers()
         signals = []

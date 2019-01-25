@@ -28,14 +28,14 @@ class Market_info_API:
         self.log = Log("Market_info_API.txt")
         db = dbm.open(self.instrument_id, 'c')
         if b'latest' not in db.keys():
-            db['latest'] = '2019-01-22T19:00:21.000Z'
+            db['latest'] = '2019-01-25T11:32:29.000Z'
         db.close()
     def GetLoser(self):
         "获取最新的爆仓订单   "
         try:
             get = requests.get('https://www.okex.me/api/futures/v3/instruments/'+self.instrument_id+'/liquidation?status=1&from=1&limit=50')
-        except:
-            self.log.write("获取爆仓单失败")
+        except Exception as e:
+            self.log.write(str(e))
             return []
         return  get.json()
     def GetDepth(self,depth = 2):
@@ -44,8 +44,8 @@ class Market_info_API:
         result['order_info'] = []
         try:
             result = self.futureAPI.get_depth(self.instrument_id,depth)
-        except:
-            self.log.write("无法获取市场数据")
+        except Exception as e:
+            self.log.write(str(e))
         return result   
     
 
@@ -75,8 +75,8 @@ class Market_info_API:
         results['order_info'] = []
         try:
             results = self.futureAPI.get_order_list(0,1,2,50,self.instrument_id)
-        except:
-            self.log.write("获取未成交订单失败")
+        except Exception as e:
+            self.log.write(str(e))
         return results
     def get_local_loser_time(self):
         db = dbm.open(self.instrument_id, 'c')
@@ -118,8 +118,8 @@ class Position_info_API:
         #获取持仓数据
         try:
             results = self.futureAPI.get_specific_position(self.instrument_id) 
-        except:
-            self.log.write("获取持仓数据失败")
+        except Exception as e:
+            self.log.write(str(e))
             return None 
         return results
     def GetDepth(self,depth = 2):
@@ -128,8 +128,8 @@ class Position_info_API:
         result['order_info'] = []
         try:
             result = self.futureAPI.get_depth(self.instrument_id,depth)
-        except:
-            self.log.write("无法获取市场数据")
+        except Exception as e:
+            self.log.write(str(e))
         return result   
     
 
@@ -161,13 +161,13 @@ class Take_order_API:
         "leverage	Number	是	要设定的杠杆倍数，10或20"
         try:
             self.futureAPI.take_order("ccbce5bb7f7344288f32585cd3adf357", self.instrument_id,otype, price, size, '0', str(self.beishu))     
-        except :
-            self.log.write("otype=%s交易失败"%otype)
+        except Exception as e:
+            self.log.write(str(e))
     def cancel_order(self,orderid):
         "撤单"
         try:
             self.futureAPI.revoke_order(self.instrument_id,orderid)
-        except:
-            self.log.write("撤单失败")
+        except Exception as e:
+            self.log.write(str(e))
             return False
         return True
