@@ -8,34 +8,56 @@ from event import Cancel_Order_Event
 from event import SignalEvent
 from api.okex_api import Market_info_API
 from account import Account
+from Logger import Log
+import zmq
+import time
+from param import Cancel_Order_sleep_time,Signal_sleep_time,Risk_controller_sleep_time
+from param import Cancel_Order_Port ,Signal_Port,Risk_controller_Port
+
 market_infor_api = Market_info_API()
-class controller:
-    def __init__(self,events):
-        self.events = events
+class controller: 
+    def __init__(self,port,porttype):
+
+
+        #端口
+        self.portstr = "tcp://*:"+port
+        self.context = zmq.Context()
+        self.socket = self.context .socket(zmq.PUB)
+        self.socket.bind(self.portstr)        
         
 class Cancel_Order_controller(controller):
     
-    def __init__(self,events):
-        super().__init__(events)
-        
+    def __init__(self,port,porttype):
+        super().__init__(port,porttype)
+        self.filename =  self.__class__.__name__ + '.txt'
+        self.mylog = Log(self.filename)        
     def monitor(self):
         orders  = market_infor_api.get_market_orders()
+        orderlist = []
         for order in orders:
             print(order.order_time_relative())
             if order.order_time_relative() > 2:
                 "订单时间超过两秒钟"
-                self.events.put(Cancel_Order_Event('CANCEL',order.orderid))
-        
+                orderlist.append(Cancel_Order_Event('CANCEL',order.orderid))
+        return orderlist
+    def run(self):
+        while  1:
+            orders = self.monitor()            
+            self.socket.send_pyobj(orders)   
+            time.sleep(Cancel_Order_sleep_time)
 class Risk_controller(controller):
     #风控模块
-    def __init__(self,events):
-        super().__init__(events)
+    def __init__(self,port,porttype):
+        super().__init__(port,porttype)
         self.account =  Account()
+        self.filename =  self.__class__.__name__ + '.txt'
+        self.mylog = Log(self.filename)
     def monitor(self):
+        signals = []
         positions = self.account.get_positions()
         for position in positions:
             print(position.ratio)
-            if abs(position.ratio) > 0.8 and position.size > 0 :
+            if abs(position.ratio) > 10 and position.size > 0 :
                 "如果收益超过+-10%"
                 #	1:开多2:开空3:平多4:平空 
                 size = position.size 
@@ -48,16 +70,25 @@ class Risk_controller(controller):
                     otype = '4'
                 else:
                     raise TypeError
-                self.events.put(SignalEvent('TAKE_ORDER',price,size,otype))
+                signals.append(SignalEvent('TAKE_ORDER',price,size,otype))
+        return signals
+    def run(self):
+        while  1:
+            signals = self.monitor()            
+            self.socket.send_pyobj(signals)
+            time.sleep(Risk_controller_sleep_time)    
     
 
         
 class Signal_controller(controller):
-    def __init__(self,events):
-        super().__init__(events)
+    def __init__(self,port,porttype):
+        super().__init__(port,porttype)
+        self.filename =  self.__class__.__name__ + '.txt'
+        self.mylog = Log(self.filename)
     def monitor(self):
         size = '10'
         losers = market_infor_api.NewLosers()
+        signals = []
         for loser in losers:  
             if float(loser.size) < 10:
                 continue
@@ -69,6 +100,36 @@ class Signal_controller(controller):
             elif loser.otype == 3:
                 price = str(loser.price * 1.01)
                 otype = '1'
-            self.events.put(SignalEvent('TAKE_ORDER',price,size,otype))
-                
-        
+            signals.append(SignalEvent('TAKE_ORDER',price,size,otype))
+        return signals
+    def run(self):
+        while  1:
+            signals = self.monitor()  
+            self.socket.send_pyobj(signals)   
+            time.sleep(Signal_sleep_time) 
+import threading
+
+def cancel_Order():
+    
+    cancel_Order_controller =Cancel_Order_controller(Cancel_Order_Port,zmq.PUB)
+    cancel_Order_controller.run()
+def risk_controller():
+    
+    risk_controller = Risk_controller(Risk_controller_Port,zmq.PUB)
+    risk_controller.run()
+def signal_conller():
+    
+    signal_controller = Signal_controller(Signal_Port,zmq.PUB)
+    signal_controller.run()
+threads = []
+#启动订单监控模块
+threads.append(threading.Thread(target=cancel_Order, args=()))    
+#启动信号进程
+threads.append(threading.Thread(target=risk_controller, args=()))   
+#启动分控监控进程
+threads.append(threading.Thread(target=signal_conller, args=()))       
+
+for thread in threads:
+    thread.start()
+for thread in threads:
+    thread.join()        

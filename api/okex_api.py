@@ -102,9 +102,7 @@ class Market_info_API:
                 
                 s+="新增爆仓订单:\n爆仓价格：%.2f\n爆仓方向：%s\n爆仓时间:%s\n"%(price,potential_losers[i]['type'],potential_losers[i]['created_at'])
                 self.log.write(s)
-        #更新最新的loser time
-        if len(potential_losers)>0 :
-            self.update_loser_time(potential_losers[0]['created_at'])
+                self.update_loser_time(potential_losers[i]['created_at'])
         return losers
 
     

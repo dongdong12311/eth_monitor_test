@@ -18,18 +18,18 @@ from api.okex_api import Take_order_API
 # 执行模块日志
 excution_log = Log("excution_log.txt")
 take_order_api = Take_order_API()
-def process(message):
+def process(messages):
     '''
     message = {"type":"CANCEL","price":str,"size":str,"otype":str,orderid:str}:
     TAKE_ORDER:交易
     "CANCEL":撤单    
     '''
-    if message['type'] == 'CANCEL':
-        take_order_api.cancel_order(message['orderid'])
-    elif message['type'] == 'TAKE_ORDER': 
-        take_order_api.takeOrder(message['price'],message['size'],message['otype'])
-    
-    excution_log.write(str(message))
+    for message in messages:        
+        if message.type == 'CANCEL':
+            take_order_api.cancel_order(message.orderid)
+        elif message.type == 'TAKE_ORDER': 
+            take_order_api.takeOrder(message.price,message.size,message.otype)
+    excution_log.write(str(messages))
 
 
 
@@ -42,6 +42,7 @@ def main():
     context = zmq.Context()
     # Initialize poll set
     poller = zmq.Poller()
+
     sockets = {'signal_socket':{"socket":context.socket(zmq.SUB),"port":Signal_Port},
            'cancel_order_socket'  :{"socket":context.socket(zmq.SUB),"port":Cancel_Order_Port},
            'risk_socket':{"socket":context.socket(zmq.SUB),"port":Risk_controller_Port}}
@@ -60,7 +61,7 @@ def main():
             break
         thread_list = []
         for socket in socks:
-            message = socket.recv_json()
+            message = socket.recv_pyobj()
             mytread = threading.Thread(target=process, args=(message,))
             mytread.start()
             thread_list.append(mytread)

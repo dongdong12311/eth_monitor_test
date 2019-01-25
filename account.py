@@ -13,7 +13,7 @@ class Position:
         self.size = int(size)
         self.otype = otype
         self.best_ask = float(best_ask)
-        self.bset_bid = float(best_bid)
+        self.best_bid = float(best_bid)
         
 class Account:
     def __init__(self):
@@ -26,7 +26,7 @@ class Account:
             return positions
         res = results['holding'][0]
         bestbid = self.position_info_api.best_bid(float(res['long_avg_cost']))
-        bestask = self.position_info_api.best_bid(float(res['short_avg_cost']))
+        bestask = self.position_info_api.best_ask(float(res['short_avg_cost']))
         if res['long_qty'] != '0':
             "持有多头"
             

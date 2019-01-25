@@ -13,9 +13,9 @@ class Cancel_Order_Event(Event):
     def __init__(self,eventtype,orderid):
         self.type = eventtype
         self.orderid = orderid
-    def dic(self):
-        return {"type":self.type,"orderid":self.orderid}
-        
+    def __str__(self):
+        s= {"type":self.type,"orderid":self.orderid}
+        return str(s)
         
 class SignalEvent(Event):
     def __init__(self,eventtype,price,size,otype):
@@ -24,7 +24,8 @@ class SignalEvent(Event):
         self.price = price
         self.size = size
         self.otype = otype
-    def dic(self):
-        return {"type":self.type,"price":self.price,"size":self.size,"otype":self.otype}
-    
+    def __str__(self):
+        
+        s =  {"type":self.type,"price":self.price,"size":self.size,"otype":self.otype}
+        return str(s)
         
