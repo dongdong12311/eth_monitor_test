@@ -12,7 +12,10 @@ class Log:
     def write(self,s):
         self.__file = open(self.filename,'a+')
         timestr = str(datetime.datetime.now())
-        self.__file.write(timestr+"\t"+ s + '\n')
+        try:
+            self.__file.write(timestr+"\t"+ s + '\n')
+        except:
+            pass
         self.__file.close()
      
         

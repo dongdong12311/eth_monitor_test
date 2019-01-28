@@ -48,7 +48,7 @@ instrument_id = 'ETH-USD-181228'
 "otype	String	是	1:开多2:开空3:平多4:平空"
 otype = str(2)
 price = str(2)
-size = str(1)
+size = str(10)
 
 "match_price	String	否	是否以对手价下单(0:不是 1:是)，默认为0，当取值为1时。price字段无效"
 match_price  = str(1)
@@ -58,6 +58,8 @@ leverage = str(10)
 "买入开仓"
 while 1:
     try:        
+        instrument_id = 'ETH-USD-190329'
+        result = futureAPI.take_order(client_oid, instrument_id, otype, price, size, match_price, leverage)
         instrument_id = 'ETH-USD-190329'
         result = futureAPI.take_order(client_oid, instrument_id, otype, price, size, match_price, leverage)
     except  Exception as e:
