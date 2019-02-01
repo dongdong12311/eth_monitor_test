@@ -44,6 +44,7 @@ class Cancel_Order_controller(controller):
             orders = self.monitor()            
             self.socket.send_pyobj(orders)   
             time.sleep(Cancel_Order_sleep_time)
+            del orders
 class Risk_controller(controller):
     #风控模块
     def __init__(self,port,porttype):
@@ -55,7 +56,7 @@ class Risk_controller(controller):
         signals = []
         positions = self.account.get_positions()
         for position in positions:
-            if abs(position.ratio) > 10 and position.size > 0 :
+            if abs(position.ratio) > 8 and position.size > 0 :
                 "如果收益超过+-10%"
                 #	1:开多2:开空3:平多4:平空 
                 size = position.size 
@@ -75,7 +76,7 @@ class Risk_controller(controller):
             signals = self.monitor()            
             self.socket.send_pyobj(signals)
             time.sleep(Risk_controller_sleep_time)    
-    
+            del signals
 
         
 class Signal_controller(controller):
@@ -106,6 +107,7 @@ class Signal_controller(controller):
             signals = self.monitor()  
             self.socket.send_pyobj(signals)   
             time.sleep(Signal_sleep_time) 
+            del signals
 import threading
 
 def cancel_Order():
