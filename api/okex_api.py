@@ -28,7 +28,7 @@ class Market_info_API:
         self.log = Log("Market_info_API.txt")
         db = dbm.open(self.instrument_id, 'c')
         if b'latest' not in db.keys():
-            db['latest'] = '2019-02-01T07:32:29.000Z'
+            db['latest'] = '2019-02-04T07:32:29.000Z'
         db.close()
     def GetLoser(self):
         "获取最新的爆仓订单   "
