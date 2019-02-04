@@ -38,6 +38,7 @@ class Cancel_Order_controller(controller):
             if order.order_time_relative() > 2:
                 "订单时间超过两秒钟"
                 orderlist.append(Cancel_Order_Event('CANCEL',order.orderid))
+        del orders
         return orderlist
     def run(self):
         while  1:
@@ -70,6 +71,7 @@ class Risk_controller(controller):
                 else:
                     raise TypeError
                 signals.append(SignalEvent('TAKE_ORDER',price,size,otype))
+        del positions
         return signals
     def run(self):
         while  1:
@@ -101,6 +103,7 @@ class Signal_controller(controller):
                 price = str(loser.price * 1.01)
                 otype = '1'
             signals.append(SignalEvent('TAKE_ORDER',price,size,otype))
+        del losers
         return signals
     def run(self):
         while  1:
