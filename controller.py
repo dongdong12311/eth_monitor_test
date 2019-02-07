@@ -11,6 +11,7 @@ from account import Account
 from Logger import Log
 import zmq
 import time
+import gc
 from param import Cancel_Order_sleep_time,Signal_sleep_time,Risk_controller_sleep_time
 from param import Cancel_Order_Port ,Signal_Port,Risk_controller_Port
 
@@ -45,7 +46,7 @@ class Cancel_Order_controller(controller):
             orders = self.monitor()            
             self.socket.send_pyobj(orders)   
             time.sleep(Cancel_Order_sleep_time)
-            del orders
+            gc.collect()
 class Risk_controller(controller):
     #风控模块
     def __init__(self,port,porttype):
@@ -78,7 +79,7 @@ class Risk_controller(controller):
             signals = self.monitor()            
             self.socket.send_pyobj(signals)
             time.sleep(Risk_controller_sleep_time)    
-            del signals
+            gc.collect()
 
         
 class Signal_controller(controller):
@@ -110,7 +111,7 @@ class Signal_controller(controller):
             signals = self.monitor()  
             self.socket.send_pyobj(signals)   
             time.sleep(Signal_sleep_time) 
-            del signals
+            gc.collect()
 import threading
 
 def cancel_Order():
