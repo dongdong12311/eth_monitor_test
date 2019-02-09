@@ -46,7 +46,7 @@ class Cancel_Order_controller(controller):
             orders = self.monitor()            
             self.socket.send_pyobj(orders)   
             time.sleep(Cancel_Order_sleep_time)
-            gc.collect()
+            
 class Risk_controller(controller):
     #风控模块
     def __init__(self,port,porttype):
@@ -79,7 +79,7 @@ class Risk_controller(controller):
             signals = self.monitor()            
             self.socket.send_pyobj(signals)
             time.sleep(Risk_controller_sleep_time)    
-            gc.collect()
+            
 
         
 class Signal_controller(controller):
@@ -111,7 +111,7 @@ class Signal_controller(controller):
             signals = self.monitor()  
             self.socket.send_pyobj(signals)   
             time.sleep(Signal_sleep_time) 
-            gc.collect()
+           
 import threading
 
 def cancel_Order():
@@ -131,7 +131,7 @@ threads = []
 threads.append(threading.Thread(target=cancel_Order, args=()))    
 #启动信号进程
 threads.append(threading.Thread(target=risk_controller, args=()))   
-#启动分控监控进程
+#启动风控监控进程
 threads.append(threading.Thread(target=signal_conller, args=()))       
 
 for thread in threads:
